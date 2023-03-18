@@ -16,7 +16,7 @@ class Sample {
 class Sampler {
   
   ArrayList<Sample> samples;
-    ArrayList<Sample> samplesModified;
+  ArrayList<Sample> samplesModified;
   int startTime;
   int playbackFrame;
   
@@ -44,11 +44,19 @@ class Sampler {
     playbackFrame = 0;
     println( samples.size(), "samples over", fullTime(), "milliseconds" );
     if(samples.size() > 0){
-     int deltax = samples.get(0).x - samples.get(samples.size()-1).x;
-     int deltay = samples.get(0).y - samples.get(samples.size()-1).y;
-     
-      for(int i = 0; i < samples.size(); i++) {
-        samplesModified.add( new Sample(samples.get(i).t, samples.get(i).x + i * deltax /samples.size(), samples.get(i).y + i * deltay / samples.size()) );
+      int deltax = samples.get(0).x - samples.get(samples.size()-1).x;
+      int deltay = samples.get(0).y - samples.get(samples.size()-1).y;
+      float sumdist = 0;
+      
+      for(int i = 0; i < samples.size() - 1; i++) {
+        sumdist += sqrt((samples.get(i).x - samples.get(i +1 ).x)*(samples.get(i).x - samples.get(i +1 ).x) + (samples.get(i).y - samples.get(i +1 ).y)*(samples.get(i).y - samples.get(i +1 ).y));
+      }
+      
+      samplesModified.add( new Sample(samples.get(0).t, samples.get(0).x , samples.get(0).y ) );
+      float dist = 0;
+      for(int i = 0; i < samples.size() - 1; i++) {
+        dist += sqrt((samples.get(i).x - samples.get(i +1 ).x)*(samples.get(i).x - samples.get(i +1 ).x) + (samples.get(i).y - samples.get(i +1 ).y)*(samples.get(i).y - samples.get(i +1 ).y));
+        samplesModified.add( new Sample(samples.get(i+1).t, (int) (samples.get(i +1).x + (dist * deltax) / sumdist), (int) (samples.get(i+1).y +( dist * deltay )/ sumdist)) );
         print(samples.get(i).x);
         print(",");
         print(samples.get(i).y);
@@ -60,37 +68,9 @@ class Sampler {
       }
     }
   }
-  
- 
-  void draw() {
-    stroke( 255 );
-    
-    //**RECORD
-    beginShape(LINES);
-    for( int i=1; i<samples.size(); i++) {
-      vertex( samplesModified.get(i-1).x, samplesModified.get(i-1).y ); // replace vertex with Pvector
-      vertex( samplesModified.get(i).x, samplesModified.get(i).y );
-    }
-    endShape();
-    //**ENDRECORD
-    
-    //**REPEAT
-    int now = (millis() - startTime) % fullTime();
-    if( now < samplesModified.get( playbackFrame ).t ) playbackFrame = 0;
-    while( samplesModified.get( playbackFrame+1).t < now )
-      playbackFrame = (playbackFrame+1) % (samples.size()-1);
-    Sample s0 = samplesModified.get( playbackFrame );
-    Sample s1 = samplesModified.get( playbackFrame+1 );
-    float t0 = s0.t;
-    float t1 = s1.t;
-    float dt = (now - t0) / (t1 - t0);
-    float x = lerp( s0.x, s1.x, dt );
-    float y = lerp( s0.y, s1.y, dt );
-    circle( x, y, 10 );
-  }
-  
-}
-
+ }
+   
+   
 Sampler sampler;
 
 void setup() {  
@@ -120,8 +100,7 @@ void draw() {
        textSize (100);
        text (measure, 100, 100 );
      }
-     
-  actualSec =(int) (millis()*0.001);  // 
+       actualSec =(int) (millis()*0.001);  // 
  
   if( bRecording) { // draw circle
     circle( mouseX, mouseY, 10 );
