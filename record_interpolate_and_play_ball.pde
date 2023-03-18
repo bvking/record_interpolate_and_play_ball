@@ -51,7 +51,9 @@ class Sampler {
     for( int i=1; i<samples.size(); i++) {
       vertex( samples.get(i-1).x, samples.get(i-1).y ); // replace vertex with Pvector
       vertex( samples.get(i).x, samples.get(i).y );
+      circle( samples.get(i).x,samples.get(i).y , 10 );
     }
+    
     endShape();
     //**ENDRECORD
     
