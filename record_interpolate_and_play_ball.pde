@@ -16,15 +16,18 @@ class Sample {
 class Sampler {
   
   ArrayList<Sample> samples;
+    ArrayList<Sample> samplesModified;
   int startTime;
   int playbackFrame;
   
   Sampler() {
     samples = new ArrayList<Sample>();
+        samplesModified = new ArrayList<Sample>();
     startTime = 0;
   }
   void beginRecording() {   
     samples = new ArrayList<Sample>();
+    samplesModified = new ArrayList<Sample>();
     playbackFrame = 0;
   }
   void addSample( int x, int y ) {  // add sample when bRecording
@@ -40,6 +43,22 @@ class Sampler {
     startTime = millis();
     playbackFrame = 0;
     println( samples.size(), "samples over", fullTime(), "milliseconds" );
+    if(samples.size() > 0){
+     int deltax = samples.get(0).x - samples.get(samples.size()-1).x;
+     int deltay = samples.get(0).y - samples.get(samples.size()-1).y;
+     
+      for(int i = 0; i < samples.size(); i++) {
+        samplesModified.add( new Sample(samples.get(i).t, samples.get(i).x + i * deltax /samples.size(), samples.get(i).y + i * deltay / samples.size()) );
+        print(samples.get(i).x);
+        print(",");
+        print(samples.get(i).y);
+        print(",");
+        print(samplesModified.get(i).x);
+        print(",");
+        print(samplesModified.get(i).y);
+        println("");      
+      }
+    }
   }
   
  
@@ -49,21 +68,19 @@ class Sampler {
     //**RECORD
     beginShape(LINES);
     for( int i=1; i<samples.size(); i++) {
-      vertex( samples.get(i-1).x, samples.get(i-1).y ); // replace vertex with Pvector
-      vertex( samples.get(i).x, samples.get(i).y );
-      circle( samples.get(i).x,samples.get(i).y , 10 );
+      vertex( samplesModified.get(i-1).x, samplesModified.get(i-1).y ); // replace vertex with Pvector
+      vertex( samplesModified.get(i).x, samplesModified.get(i).y );
     }
-    
     endShape();
     //**ENDRECORD
     
     //**REPEAT
     int now = (millis() - startTime) % fullTime();
-    if( now < samples.get( playbackFrame ).t ) playbackFrame = 0;
-    while( samples.get( playbackFrame+1).t < now )
+    if( now < samplesModified.get( playbackFrame ).t ) playbackFrame = 0;
+    while( samplesModified.get( playbackFrame+1).t < now )
       playbackFrame = (playbackFrame+1) % (samples.size()-1);
-    Sample s0 = samples.get( playbackFrame );
-    Sample s1 = samples.get( playbackFrame+1 );
+    Sample s0 = samplesModified.get( playbackFrame );
+    Sample s1 = samplesModified.get( playbackFrame+1 );
     float t0 = s0.t;
     float t1 = s1.t;
     float dt = (now - t0) / (t1 - t0);
@@ -103,7 +120,8 @@ void draw() {
        textSize (100);
        text (measure, 100, 100 );
      }
-       actualSec =(int) (millis()*0.001);  // 
+     
+  actualSec =(int) (millis()*0.001);  // 
  
   if( bRecording) { // draw circle
     circle( mouseX, mouseY, 10 );
